@@ -1,4 +1,5 @@
 import os.path as osp
+from pathlib import Path
 import webbrowser
 import json
 import requests
@@ -7,6 +8,11 @@ from flask import Flask, render_template, request, redirect, url_for
 app = Flask(__name__)
 app.config["DEBUG"] = True
 chrome_path = 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe %s' # default Chrome path for Windows
+
+def create_missing_directories(output_path):
+    dirs = osp.split(output_path)[0]
+    if not osp.exists(dirs):
+        Path(dirs).mkdir(parents=True, exist_ok=True)
 
 @app.route("/")
 def index():
@@ -29,10 +35,14 @@ def inputs():
                 'arg':arg,
                 'time':request.form['time'],
                 'out':request.form['out']}
-        r = requests.get('http://bmj-cluster.cs.mcgill.ca:13680/run', params=payload) # specifies IP of node-ovs as controller host
+        r = requests.get('http://bmj-cluster.cs.mcgill.ca:13680/run', params=payload) # specifies IP and port of node-ovs as controller host
+        # Note: there is a port mapping from bmj-cluster port 13680 to node-ovs port 8000
         import time; time.sleep(2)
         json_str = json.dumps(r.json(), indent = 4)
-        with open(osp.join("json", request.form['out']), "w") as output:
+        out_path = osp.join("json", request.form['out'])
+        create_missing_directories(out_path)
+        with open(out_path, "w") as output:
             output.write(json_str)
-        webbrowser.get(chrome_path).open("file://"+ osp.realpath(osp.join("webvowl1.1.7SE", "index.html")), new=2)
+        parent_dir = Path(__file__).parent.resolve()
+        webbrowser.get(chrome_path).open("file://"+ osp.realpath(osp.join(parent_dir, "index.html")), new=2)
         return render_template('index.html', completed="Sniffing completed.")
