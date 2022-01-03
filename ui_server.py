@@ -31,11 +31,11 @@ def inputs():
             arg = request.form['file']
         payload = {'mode':mode,
                 'log': '*', #request.form['log'],
-                'host':'10.0.1.22', # specifies IP of node-02 as agent host
+                'host':'AGENT_HOST', # specify IP of agent host
                 'arg':arg,
                 'time':request.form['time'],
                 'out':request.form['out']}
-        r = requests.get('http://bmj-cluster.cs.mcgill.ca:13680/run', params=payload) # specifies IP and port of node-ovs as controller host
+        r = requests.get('http://CONTROLLER_HOST_ADDRESS:PORT/run', params=payload) # specify IP and port of controller host
         # Note: there is a port mapping from bmj-cluster port 13680 to node-ovs port 8000
         import time; time.sleep(2)
         json_str = json.dumps(r.json(), indent = 4)
